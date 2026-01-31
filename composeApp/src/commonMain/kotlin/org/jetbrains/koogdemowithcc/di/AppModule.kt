@@ -56,7 +56,7 @@ val viewModelModule = module {
     factory { WeatherViewModel(get(), get(), get()) }
 
     // TripPlanViewModel
-    factory { TripPlanViewModel(get(), get(), get(), get()) }
+    factory { TripPlanViewModel(get(), get(), get(), get(), get()) }
 }
 
 /**

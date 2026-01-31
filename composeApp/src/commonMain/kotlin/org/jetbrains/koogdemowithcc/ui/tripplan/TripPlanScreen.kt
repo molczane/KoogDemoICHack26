@@ -1,7 +1,9 @@
 package org.jetbrains.koogdemowithcc.ui.tripplan
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +13,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -40,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import org.jetbrains.koogdemowithcc.ui.components.ChatPanel
 import org.jetbrains.koogdemowithcc.ui.components.MapView
@@ -55,7 +61,7 @@ fun TripPlanScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val density = LocalDensity.current
+    val focusManager = LocalFocusManager.current
 
     // Divider position as fraction (0.0 to 1.0) - starts at 40%
     var mapWeight by remember { mutableFloatStateOf(0.4f) }
@@ -73,11 +79,20 @@ fun TripPlanScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                // Dismiss keyboard when tapping outside
+                focusManager.clearFocus()
+            }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
+                .navigationBarsPadding()
+                .imePadding()
                 .onSizeChanged { size ->
                     totalHeight = size.height.toFloat()
                 }
@@ -94,12 +109,21 @@ fun TripPlanScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(mapWeight)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        focusManager.clearFocus()
+                    }
             ) {
                 MapView(
                     state = uiState.mapState,
                     modifier = Modifier.fillMaxSize(),
                     onMarkerClick = { marker -> viewModel.onMarkerClick(marker) },
-                    onMapClick = { latLng -> viewModel.onMapClick(latLng) }
+                    onMapClick = { latLng ->
+                        focusManager.clearFocus()
+                        viewModel.onMapClick(latLng)
+                    }
                 )
 
                 // Marker count badge
@@ -118,16 +142,17 @@ fun TripPlanScreen(
                 onDrag = { delta ->
                     if (totalHeight > 0) {
                         val deltaFraction = delta / totalHeight
-                        mapWeight = (mapWeight + deltaFraction).coerceIn(0.2f, 0.7f)
+                        mapWeight = (mapWeight + deltaFraction).coerceIn(0.2f, 0.6f)
                     }
                 }
             )
 
-            // Chat section
+            // Chat section with minimum height to prevent input from disappearing
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f - mapWeight)
+                    .heightIn(min = 120.dp)
             ) {
                 ChatPanel(
                     messages = uiState.messages,

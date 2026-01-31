@@ -2,12 +2,7 @@ package org.jetbrains.koogdemowithcc.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -55,10 +50,7 @@ fun ChatPanel(
             onValueChange = onInputChange,
             onSend = onSend,
             enabled = !isLoading,
-            placeholder = if (isLoading) "Processing..." else inputPlaceholder,
-            modifier = Modifier.windowInsetsPadding(
-                WindowInsets.ime.exclude(WindowInsets.navigationBars)
-            )
+            placeholder = if (isLoading) "Processing..." else inputPlaceholder
         )
     }
 }

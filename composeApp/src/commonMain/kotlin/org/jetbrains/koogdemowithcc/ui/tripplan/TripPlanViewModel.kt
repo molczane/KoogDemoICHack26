@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.jetbrains.koogdemowithcc.data.location.LocationResult
+import org.jetbrains.koogdemowithcc.data.location.LocationService
 import org.jetbrains.koogdemowithcc.data.repository.AgentRepository
 import org.jetbrains.koogdemowithcc.data.repository.AgentRepositoryImpl
 import org.jetbrains.koogdemowithcc.data.repository.AgentType
@@ -41,7 +43,8 @@ class TripPlanViewModel(
     private val agentRepository: AgentRepository,
     private val chatRepository: ChatRepository,
     private val markersRepository: MarkersRepository,
-    private val eventBus: AgentEventBus
+    private val eventBus: AgentEventBus,
+    private val locationService: LocationService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TripPlanUiState())
@@ -86,6 +89,28 @@ class TripPlanViewModel(
         viewModelScope.launch {
             eventBus.events.collect { event ->
                 handleAgentEvent(event)
+            }
+        }
+
+        // Fetch user location and set as initial camera position
+        viewModelScope.launch {
+            when (val result = locationService.getCurrentLocation()) {
+                is LocationResult.Success -> {
+                    val userLatLng = result.toLatLng()
+                    _uiState.update { state ->
+                        state.copy(
+                            mapState = state.mapState.copy(
+                                cameraPosition = CameraPosition(target = userLatLng),
+                                isUserLocationEnabled = true,
+                                userLocation = userLatLng
+                            )
+                        )
+                    }
+                }
+                is LocationResult.Error -> {
+                    // Keep default camera position (Warsaw) if location unavailable
+                    println("TripPlanViewModel: Could not get user location: ${result.message}")
+                }
             }
         }
     }

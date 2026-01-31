@@ -5,6 +5,8 @@ import androidx.compose.ui.Modifier
 import com.swmansion.kmpmaps.core.CameraPosition as KmpCameraPosition
 import com.swmansion.kmpmaps.core.Coordinates
 import com.swmansion.kmpmaps.core.Map
+import com.swmansion.kmpmaps.core.MapProperties
+import com.swmansion.kmpmaps.core.MapUISettings
 import com.swmansion.kmpmaps.core.Marker
 import com.swmansion.kmpmaps.core.Polyline
 import org.jetbrains.koogdemowithcc.domain.model.LatLng
@@ -26,6 +28,12 @@ fun MapView(
     Map(
         modifier = modifier,
         cameraPosition = state.cameraPosition.toKmpCameraPosition(),
+        properties = MapProperties(
+            isMyLocationEnabled = state.isUserLocationEnabled
+        ),
+        uiSettings = MapUISettings(
+            myLocationButtonEnabled = state.isUserLocationEnabled
+        ),
         markers = state.markers.map { it.toKmpMarker() },
         polylines = state.routePolyline?.let { polyline ->
             listOf(
